@@ -119,6 +119,6 @@ partial class InnerVerifier
             return result;
         }
 
-        return ApplyScrubbers.ApplyForPropertyValue(value, settings, counter);
+        return ApplyScrubbers.ApplyForPropertyValue(value.AsSpan(), settings, counter).ToString();
     }
 }
