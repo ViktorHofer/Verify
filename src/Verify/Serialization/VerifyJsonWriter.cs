@@ -62,6 +62,10 @@ public class VerifyJsonWriter :
         base.WritePropertyName(name, escape);
     }
 
+
+    public override void WriteValue(CharSpan value) =>
+        WriteValue(value.ToString());
+
     public override void WriteValue(string? value)
     {
         if (value is null)
