@@ -3,11 +3,11 @@
     public static void RemoveLinesContaining(this StringBuilder input, StringComparison comparison, params string[] stringToMatch)
     {
         Guard.AgainstNullOrEmpty(stringToMatch);
-        input.FilterLines(_ =>
+        input.FilterLines((CharSpan _) =>
         {
             foreach (var toMatch in stringToMatch)
             {
-                if (_.Contains(toMatch, comparison))
+                if (_.Contains(toMatch.AsSpan(), comparison))
                 {
                     return true;
                 }
