@@ -51,15 +51,6 @@ public static partial class VerifierSettings
     /// <summary>
     /// Remove any lines matching <paramref name="removeLine" /> from the test results.
     /// </summary>
-    public static void ScrubLines(Func<string, bool> removeLine, ScrubberLocation location = ScrubberLocation.First)
-    {
-        InnerVerifier.ThrowIfVerifyHasBeenRun();
-        AddScrubber(_ => _.FilterLines(removeLine), location);
-    }
-
-    /// <summary>
-    /// Remove any lines matching <paramref name="removeLine" /> from the test results.
-    /// </summary>
     public static void ScrubLines(RemoveLine removeLine, ScrubberLocation location = ScrubberLocation.First)
     {
         InnerVerifier.ThrowIfVerifyHasBeenRun();

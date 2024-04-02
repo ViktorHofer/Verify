@@ -64,12 +64,6 @@ public partial class VerifySettings
     /// <summary>
     /// Remove any lines matching <paramref name="removeLine" /> from the test results.
     /// </summary>
-    public void ScrubLines(string extension, Func<string, bool> removeLine, ScrubberLocation location = ScrubberLocation.First) =>
-        AddScrubber(extension, _ => _.FilterLines(removeLine), location);
-
-    /// <summary>
-    /// Remove any lines matching <paramref name="removeLine" /> from the test results.
-    /// </summary>
     public void ScrubLines(string extension, RemoveLine removeLine, ScrubberLocation location = ScrubberLocation.First) =>
         AddScrubber(extension, _ => _.FilterLines(removeLine), location);
 
