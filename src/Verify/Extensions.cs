@@ -137,13 +137,18 @@ static class Extensions
         return null;
     }
 
-    public static void FilterLines(this StringBuilder input, Func<string, bool> removeLine)
+    public static void FilterLines(this StringBuilder input, Func<string, bool> removeLine) =>
+        input.FilterLines((CharSpan span) => removeLine(span.ToString()));
+
+    internal delegate bool RemoveLine(CharSpan line);
+
+    public static void FilterLines(this StringBuilder input, RemoveLine removeLine)
     {
         var theString = input.ToString();
-        using var reader = new StringReader(theString);
+        var span = theString.AsSpan();
         input.Clear();
 
-        while (reader.ReadLine() is { } line)
+        foreach (var line in span.EnumerateLines())
         {
             if (removeLine(line))
             {
@@ -158,6 +163,20 @@ static class Extensions
         {
             input.Length -= 1;
         }
+    }
+
+
+    public static bool IsWhiteSpace(this CharSpan value)
+    {
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (!char.IsWhiteSpace(value[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public static void RemoveEmptyLines(this StringBuilder builder)
