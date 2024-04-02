@@ -137,9 +137,6 @@ static class Extensions
         return null;
     }
 
-    public static void FilterLines(this StringBuilder input, Func<string, bool> removeLine) =>
-        input.FilterLines((CharSpan span) => removeLine(span.ToString()));
-
     public static void FilterLines(this StringBuilder input, RemoveLine removeLine)
     {
         var theString = input.ToString();
@@ -178,7 +175,8 @@ static class Extensions
 
     public static void RemoveEmptyLines(this StringBuilder builder)
     {
-        builder.FilterLines(string.IsNullOrWhiteSpace);
+        builder.FilterLines(MemoryExtensions.IsWhiteSpace);
+
         if (builder.FirstChar() is '\n')
         {
             builder.Remove(0, 1);
