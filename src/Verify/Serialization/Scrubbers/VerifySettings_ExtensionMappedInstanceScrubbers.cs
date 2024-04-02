@@ -68,6 +68,12 @@ public partial class VerifySettings
         AddScrubber(extension, _ => _.FilterLines(removeLine), location);
 
     /// <summary>
+    /// Remove any lines matching <paramref name="removeLine" /> from the test results.
+    /// </summary>
+    public void ScrubLines(string extension, RemoveLine removeLine, ScrubberLocation location = ScrubberLocation.First) =>
+        AddScrubber(extension, _ => _.FilterLines(removeLine), location);
+
+    /// <summary>
     /// Scrub lines with an optional replace.
     /// <paramref name="replaceLine" /> can return the input to ignore the line, or return a different string to replace it.
     /// </summary>

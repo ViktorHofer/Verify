@@ -169,7 +169,7 @@ public partial class SettingsTask
     /// Remove any lines matching <paramref name="removeLine" /> from the test results.
     /// </summary>
     [Pure]
-    public SettingsTask ScrubLines(Func<string, bool> removeLine, ScrubberLocation location = ScrubberLocation.First)
+    public SettingsTask ScrubLines(RemoveLine removeLine, ScrubberLocation location = ScrubberLocation.First)
     {
         CurrentSettings.ScrubLines(removeLine, location);
         return this;
@@ -179,7 +179,7 @@ public partial class SettingsTask
     /// Remove any lines matching <paramref name="removeLine" /> from the test results.
     /// </summary>
     [Pure]
-    public SettingsTask ScrubLines(string extension, Func<string, bool> removeLine, ScrubberLocation location = ScrubberLocation.First)
+    public SettingsTask ScrubLines(string extension, RemoveLine removeLine, ScrubberLocation location = ScrubberLocation.First)
     {
         CurrentSettings.ScrubLines(extension, removeLine, location);
         return this;

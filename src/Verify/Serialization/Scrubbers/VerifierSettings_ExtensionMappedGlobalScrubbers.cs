@@ -63,6 +63,15 @@ public static partial class VerifierSettings
     }
 
     /// <summary>
+    /// Remove any lines matching <paramref name="removeLine" /> from the test results.
+    /// </summary>
+    public static void ScrubLines(string extension, RemoveLine removeLine, ScrubberLocation location = ScrubberLocation.First)
+    {
+        InnerVerifier.ThrowIfVerifyHasBeenRun();
+        AddScrubber(extension, _ => _.FilterLines(removeLine), location);
+    }
+
+    /// <summary>
     /// Remove any lines containing only whitespace from the test results.
     /// </summary>
     public static void ScrubEmptyLines(string extension, ScrubberLocation location = ScrubberLocation.First)

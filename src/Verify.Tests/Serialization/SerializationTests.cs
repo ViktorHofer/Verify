@@ -1793,11 +1793,15 @@ public class SerializationTests
     {
         var verifySettings = new VerifySettings();
 
+#if NET6_0_OR_GREATER
+
         #region ScrubLines
 
-        verifySettings.ScrubLines(line => line.Contains("text"));
+        verifySettings.ScrubLines(line => line.Contains("text", StringComparison.Ordinal));
 
         #endregion
+
+#endif
 
         #region ScrubLinesContaining
 

@@ -140,7 +140,6 @@ static class Extensions
     public static void FilterLines(this StringBuilder input, Func<string, bool> removeLine) =>
         input.FilterLines((CharSpan span) => removeLine(span.ToString()));
 
-
     public static void FilterLines(this StringBuilder input, RemoveLine removeLine)
     {
         var theString = input.ToString();
