@@ -159,34 +159,8 @@ static class Extensions
         }
     }
 
-
-    public static bool IsWhiteSpace(this CharSpan value)
-    {
-        for (var i = 0; i < value.Length; i++)
-        {
-            if (!char.IsWhiteSpace(value[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public static void RemoveEmptyLines(this StringBuilder builder)
-    {
+    public static void RemoveEmptyLines(this StringBuilder builder) =>
         builder.FilterLines(MemoryExtensions.IsWhiteSpace);
-
-        if (builder.FirstChar() is '\n')
-        {
-            builder.Remove(0, 1);
-        }
-
-        if (builder.LastChar() is '\n')
-        {
-            builder.Length--;
-        }
-    }
 
     public static string Remove(this string value, string toRemove) =>
         value.Replace(toRemove, "");
