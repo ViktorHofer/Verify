@@ -74,62 +74,88 @@ public static class Scrubbers
     public static string ScrubStackTrace(string stackTrace, bool removeParams = false)
     {
         var builder = new StringBuilder();
-        using var reader = new StringReader(stackTrace);
-        while (reader.ReadLine() is { } line)
+        foreach (var line in stackTrace
+                     .AsSpan()
+                     .EnumerateLines())
         {
-            if (
-                (line.Contains("<>") && line.Contains(".MoveNext()")) ||
-                line.Contains("System.Runtime.CompilerServices.TaskAwaiter") ||
-                line.Contains("End of stack trace from previous location where exception was thrown")
-            )
-            {
-                continue;
-            }
-
-            line = line.TrimStart();
-            if (!line.StartsWith("at "))
-            {
-                builder.AppendLineN(line);
-                continue;
-            }
-
-            if (line.StartsWith("at InnerVerifier.Throws") ||
-                line.StartsWith("at InnerVerifier.<Throws"))
-            {
-                continue;
-            }
-
-            if (removeParams)
-            {
-                var indexOfLeft = line.IndexOf('(');
-                if (indexOfLeft > -1)
-                {
-                    var c = line[indexOfLeft + 1];
-                    if (c == ')')
-                    {
-                        line = line[..(indexOfLeft + 2)];
-                    }
-                    else
-                    {
-                        line = line[..(indexOfLeft + 1)] + "...)";
-                    }
-                }
-            }
-            else
-            {
-                var indexOfRight = line.IndexOf(')');
-                if (indexOfRight > -1)
-                {
-                    line = line[..(indexOfRight + 1)];
-                }
-            }
-
-            line = line.Replace(" (", "(");
-            line = line.Replace('+', '.');
-            builder.AppendLineN(line);
+            ProcessLine(removeParams, line, builder);
         }
 
         builder.TrimEnd();
         return builder.ToString();
     }
+
+    static void ProcessLine(bool removeParams, CharSpan span, StringBuilder builder)
+    {
+        if (IgnoreLine(span))
+        {
+            return;
+        }
+
+        Span<char> buffer = stackalloc char[span.Length];
+        span.CopyTo(buffer);
+        buffer = buffer.TrimStart();
+        if (!buffer.StartsWith("at "))
+        {
+            builder.AppendLineN(buffer);
+            return;
+        }
+
+        if (buffer.StartsWith("at InnerVerifier.Throws") ||
+            buffer.StartsWith("at InnerVerifier.<Throws"))
+        {
+            return;
+        }
+
+        if (removeParams)
+        {
+            var indexOfLeft = buffer.IndexOf('(');
+            if (indexOfLeft > -1)
+            {
+                var c = buffer[indexOfLeft + 1];
+                if (c == ')')
+                {
+                    buffer = buffer[..(indexOfLeft + 2)];
+                }
+                else
+                {
+                    buffer = buffer[..(indexOfLeft + 1)] + "...)";
+                }
+            }
+        }
+        else
+        {
+            var indexOfRight = buffer.IndexOf(')');
+            if (indexOfRight > -1)
+            {
+                buffer = buffer[..(indexOfRight + 1)];
+            }
+        }
+
+        buffer.Replace('+', '.');
+        buffer.Replace(" (", "(");
+        builder.AppendLineN(buffer);
+    }
+
+    static bool IgnoreLine(CharSpan span) =>
+        IsStateMachine(span) ||
+        span.Contains("System.Runtime.CompilerServices.TaskAwaiter".AsSpan(), StringComparison.Ordinal) ||
+        span.Contains("End of stack trace from previous location where exception was thrown".AsSpan(), StringComparison.Ordinal);
+
+#if NET8_0_OR_GREATER
+
+    static SearchValues<string> anglesLookup = SearchValues.Create(["<>"], StringComparison.Ordinal);
+    static SearchValues<string> moveNextLookup = SearchValues.Create([".MoveNext()"], StringComparison.Ordinal);
+
+    static bool IsStateMachine(CharSpan span) =>
+        span.ContainsAny(anglesLookup) &&
+        span.ContainsAny(moveNextLookup);
+
+#else
+
+    static bool IsStateMachine(CharSpan span) =>
+        span.Contains("<>".AsSpan(), StringComparison.Ordinal) &&
+        span.Contains(".MoveNext()".AsSpan(), StringComparison.Ordinal);
+
+#endif
 }
