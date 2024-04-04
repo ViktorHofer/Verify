@@ -213,7 +213,7 @@ class VirtualizedRunHelper
         {
             buildTimePathRelative = buildTimePathRelative[originalCodeBaseRoot.Length..];
             buildTimePathRelative = buildTimePathRelative.TrimStart(separators);
-            if (buildTimePathRelative == string.Empty)
+            if (buildTimePathRelative.Length == 0)
             {
                 buildTimePathRelative = buildTimePath;
             }
