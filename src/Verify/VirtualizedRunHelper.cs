@@ -128,7 +128,7 @@ class VirtualizedRunHelper
             var currentDir = Env.CurrentDirectory;
             do
             {
-                var testMappedPath = Env.CombinePaths(currentDir, buildTimePathRelative);
+                var testMappedPath = Env.CombinePaths(currentDir, buildTimePathRelative.ToString());
                 if (Env.PathExists(testMappedPath))
                 {
                     baseRootAbsolute = buildTimePath[..^buildTimePathRelative.Length];
@@ -139,7 +139,7 @@ class VirtualizedRunHelper
                 currentDir = TryRemoveDirFromEndOfPath(currentDir);
             } while (currentDir.Length > 0);
 
-            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative.AsSpan()).ToString();
+            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
         } while (buildTimePathRelative.Length > 0);
 
         codeBaseRootAbsolute = null;
@@ -205,7 +205,7 @@ class VirtualizedRunHelper
         return false;
     }
 
-    static string GetBuildTimePathRelative(string? originalCodeBaseRoot, string buildTimePath)
+    static CharSpan GetBuildTimePathRelative(string? originalCodeBaseRoot, string buildTimePath)
     {
         var buildTimePathRelative = buildTimePath.AsSpan();
         if (originalCodeBaseRoot != null &&
@@ -225,7 +225,7 @@ class VirtualizedRunHelper
             buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
         }
 
-        return buildTimePathRelative.ToString();
+        return buildTimePathRelative;
     }
 
     static bool AppearsBuiltOnCurrentPlatform(CharSpan buildTimePath) =>
