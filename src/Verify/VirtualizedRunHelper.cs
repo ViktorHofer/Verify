@@ -86,7 +86,7 @@ class VirtualizedRunHelper
 
     bool TryInitializeFromBuildTimePath(string? originalCodeBaseRoot, string buildTimePath)
     {
-        if (AppearsBuiltOnCurrentPlatform(buildTimePath))
+        if (AppearsBuiltOnCurrentPlatform(buildTimePath.AsSpan()))
         {
             AppearsToBeLocalVirtualizedRun = false;
             return true;
@@ -216,7 +216,7 @@ class VirtualizedRunHelper
         return buildTimePathRelative;
     }
 
-    static bool AppearsBuiltOnCurrentPlatform(string buildTimePath) =>
+    static bool AppearsBuiltOnCurrentPlatform(CharSpan buildTimePath) =>
         buildTimePath.Contains(Env.DirectorySeparatorChar) &&
         !buildTimePath.Contains(Env.AltDirectorySeparatorChar);
 
