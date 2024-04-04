@@ -139,7 +139,7 @@ class VirtualizedRunHelper
                 currentDir = TryRemoveDirFromEndOfPath(currentDir);
             } while (currentDir.Length > 0);
 
-            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
+            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative.AsSpan()).ToString();
         } while (buildTimePathRelative.Length > 0);
 
         codeBaseRootAbsolute = null;
@@ -165,14 +165,14 @@ class VirtualizedRunHelper
         var mappedCodeBaseRootRelative = originalCodeBaseRoot.Replace('\\', '/');
         while (true)
         {
-            currentDirRelativeToAppRoot = TryRemoveDirFromStartOfPath(currentDirRelativeToAppRoot);
+            currentDirRelativeToAppRoot = TryRemoveDirFromStartOfPath(currentDirRelativeToAppRoot.AsSpan()).ToString();
             if (currentDirRelativeToAppRoot.Length == 0)
             {
                 break;
             }
             while (true)
             {
-                mappedCodeBaseRootRelative = TryRemoveDirFromStartOfPath(mappedCodeBaseRootRelative);
+                mappedCodeBaseRootRelative = TryRemoveDirFromStartOfPath(mappedCodeBaseRootRelative.AsSpan()).ToString();
                 if (mappedCodeBaseRootRelative.Length == 0)
                 {
                     break;
@@ -222,7 +222,7 @@ class VirtualizedRunHelper
         // path is actually absolute - let's remove the root
         if (buildTimePathRelative == buildTimePath)
         {
-            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
+            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative.AsSpan()).ToString();
         }
 
         return buildTimePathRelative;
@@ -232,14 +232,14 @@ class VirtualizedRunHelper
         buildTimePath.Contains(Env.DirectorySeparatorChar) &&
         !buildTimePath.Contains(Env.AltDirectorySeparatorChar);
 
-    static string TryRemoveDirFromStartOfPath(string path)
+    static CharSpan TryRemoveDirFromStartOfPath(CharSpan path)
     {
         path = path.TrimStart(separators);
 
         var nextSeparatorIdx = path.IndexOfAny(separators);
         if (nextSeparatorIdx <= 0 || nextSeparatorIdx == path.Length - 1)
         {
-            return string.Empty;
+            return CharSpan.Empty;
         }
 
         path = path[(nextSeparatorIdx + 1)..];
