@@ -26,12 +26,12 @@ class VirtualizedRunHelper
     {
         if (solutionDir != null)
         {
-            Initialized = TryInitializeFromBuildTimePath(solutionDir, solutionDir);
+            Initialized = TryInitializeFromBuildTimePath(solutionDir, solutionDir.AsSpan());
             if (!Initialized)
             {
                 if (projectDir != null)
                 {
-                    Initialized = TryInitializeFromBuildTimePath(solutionDir, projectDir);
+                    Initialized = TryInitializeFromBuildTimePath(solutionDir, projectDir.AsSpan());
                 }
             }
 
@@ -40,7 +40,7 @@ class VirtualizedRunHelper
 
         if (projectDir != null)
         {
-            Initialized = TryInitializeFromBuildTimePath(projectDir, projectDir);
+            Initialized = TryInitializeFromBuildTimePath(projectDir, projectDir.AsSpan());
         }
     }
 
@@ -52,7 +52,7 @@ class VirtualizedRunHelper
             // If not initialized (the solution or project dir path might not have been set or they are
             //   not sufficient due to insufficient nesting and hence appearing to have no cross-section
             //   with the current dir)
-            TryInitializeFromBuildTimePath(originalCodeBaseRootAbsolute, path);
+            TryInitializeFromBuildTimePath(originalCodeBaseRootAbsolute, path.AsSpan());
             Initialized = true;
         }
 
@@ -84,9 +84,9 @@ class VirtualizedRunHelper
         return path;
     }
 
-    bool TryInitializeFromBuildTimePath(string? originalCodeBaseRoot, string buildTimePath)
+    bool TryInitializeFromBuildTimePath(string? originalCodeBaseRoot, CharSpan buildTimePath)
     {
-        if (AppearsBuiltOnCurrentPlatform(buildTimePath.AsSpan()))
+        if (AppearsBuiltOnCurrentPlatform(buildTimePath))
         {
             AppearsToBeLocalVirtualizedRun = false;
             return true;
@@ -104,7 +104,7 @@ class VirtualizedRunHelper
 
     static bool InnerTryInitializeFromBuildTimePath(
         string? originalCodeBaseRoot,
-        string buildTimePath,
+        CharSpan buildTimePath,
         [NotNullWhen(true)] out string? mappedCodeBaseRootAbsolute,
         [NotNullWhen(true)] out string? originalCodeBaseRootAbsolute) =>
         // First attempt - by the cross-section of the build-time path and run-time path
@@ -116,7 +116,7 @@ class VirtualizedRunHelper
 
     static bool TryGetRelative(
         string? originalCodeBaseRoot,
-        string buildTimePath,
+        CharSpan buildTimePath,
         [NotNullWhen(true)] out string? codeBaseRootAbsolute,
         [NotNullWhen(true)] out string? baseRootAbsolute)
     {
@@ -131,7 +131,7 @@ class VirtualizedRunHelper
                 var testMappedPath = Env.CombinePaths(currentDir, buildTimePathRelative.ToString());
                 if (Env.PathExists(testMappedPath))
                 {
-                    baseRootAbsolute = buildTimePath[..^buildTimePathRelative.Length];
+                    baseRootAbsolute = buildTimePath[..^buildTimePathRelative.Length].ToString();
                     codeBaseRootAbsolute = currentDir;
                     return true;
                 }
@@ -205,9 +205,9 @@ class VirtualizedRunHelper
         return false;
     }
 
-    static CharSpan GetBuildTimePathRelative(string? originalCodeBaseRoot, string buildTimePath)
+    static CharSpan GetBuildTimePathRelative(string? originalCodeBaseRoot, CharSpan buildTimePath)
     {
-        var buildTimePathRelative = buildTimePath.AsSpan();
+        var buildTimePathRelative = buildTimePath;
         if (originalCodeBaseRoot != null &&
             buildTimePath.StartsWith(originalCodeBaseRoot, StringComparison.OrdinalIgnoreCase))
         {
@@ -215,12 +215,12 @@ class VirtualizedRunHelper
             buildTimePathRelative = buildTimePathRelative.TrimStart(separators);
             if (buildTimePathRelative.Length == 0)
             {
-                buildTimePathRelative = buildTimePath.AsSpan();
+                buildTimePathRelative = buildTimePath;
             }
         }
 
         // path is actually absolute - let's remove the root
-        if (buildTimePathRelative == buildTimePath.AsSpan())
+        if (buildTimePathRelative == buildTimePath)
         {
             buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
         }
