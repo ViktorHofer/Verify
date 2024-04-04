@@ -138,7 +138,9 @@ class VirtualizedRunHelper
 
                 currentDir = TryRemoveDirFromEndOfPath(currentDir);
             } while (currentDir.Length > 0);
-        } while (TryRemoveDirFromStartOfPath(ref buildTimePathRelative));
+
+            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
+        } while (buildTimePathRelative.Length > 0);
 
         codeBaseRootAbsolute = null;
         baseRootAbsolute = null;
@@ -161,10 +163,20 @@ class VirtualizedRunHelper
         var currentDirRelativeToAppRoot = currentDirectory.TrimStart(separators);
         //remove the drive info from the code root
         var mappedCodeBaseRootRelative = originalCodeBaseRoot.Replace('\\', '/');
-        while (TryRemoveDirFromStartOfPath(ref currentDirRelativeToAppRoot))
+        while (true)
         {
-            while (TryRemoveDirFromStartOfPath(ref mappedCodeBaseRootRelative))
+            currentDirRelativeToAppRoot = TryRemoveDirFromStartOfPath(currentDirRelativeToAppRoot);
+            if (currentDirRelativeToAppRoot.Length == 0)
             {
+                break;
+            }
+            while (true)
+            {
+                mappedCodeBaseRootRelative = TryRemoveDirFromStartOfPath(mappedCodeBaseRootRelative);
+                if (mappedCodeBaseRootRelative.Length == 0)
+                {
+                    break;
+                }
                 if (!currentDirRelativeToAppRoot.StartsWith(mappedCodeBaseRootRelative, StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
@@ -210,7 +222,7 @@ class VirtualizedRunHelper
         // path is actually absolute - let's remove the root
         if (buildTimePathRelative == buildTimePath)
         {
-            TryRemoveDirFromStartOfPath(ref buildTimePathRelative);
+            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
         }
 
         return buildTimePathRelative;
@@ -220,19 +232,19 @@ class VirtualizedRunHelper
         buildTimePath.Contains(Env.DirectorySeparatorChar) &&
         !buildTimePath.Contains(Env.AltDirectorySeparatorChar);
 
-    static bool TryRemoveDirFromStartOfPath(ref string path)
+    static string TryRemoveDirFromStartOfPath(string path)
     {
         path = path.TrimStart(separators);
 
         var nextSeparatorIdx = path.IndexOfAny(separators);
         if (nextSeparatorIdx <= 0 || nextSeparatorIdx == path.Length - 1)
         {
-            return false;
+            return string.Empty;
         }
 
         path = path[(nextSeparatorIdx + 1)..];
 
-        return path != string.Empty;
+        return path;
     }
 
     static string TryRemoveDirFromEndOfPath(string path)
