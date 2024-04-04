@@ -207,7 +207,7 @@ class VirtualizedRunHelper
 
     static string GetBuildTimePathRelative(string? originalCodeBaseRoot, string buildTimePath)
     {
-        var buildTimePathRelative = buildTimePath;
+        var buildTimePathRelative = buildTimePath.AsSpan();
         if (originalCodeBaseRoot != null &&
             buildTimePath.StartsWith(originalCodeBaseRoot, StringComparison.OrdinalIgnoreCase))
         {
@@ -215,17 +215,17 @@ class VirtualizedRunHelper
             buildTimePathRelative = buildTimePathRelative.TrimStart(separators);
             if (buildTimePathRelative.Length == 0)
             {
-                buildTimePathRelative = buildTimePath;
+                buildTimePathRelative = buildTimePath.AsSpan();
             }
         }
 
         // path is actually absolute - let's remove the root
-        if (buildTimePathRelative == buildTimePath)
+        if (buildTimePathRelative == buildTimePath.AsSpan())
         {
-            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative.AsSpan()).ToString();
+            buildTimePathRelative = TryRemoveDirFromStartOfPath(buildTimePathRelative);
         }
 
-        return buildTimePathRelative;
+        return buildTimePathRelative.ToString();
     }
 
     static bool AppearsBuiltOnCurrentPlatform(CharSpan buildTimePath) =>
