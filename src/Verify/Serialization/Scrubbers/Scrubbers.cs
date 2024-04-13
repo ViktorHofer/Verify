@@ -81,80 +81,63 @@ public static class Scrubbers
 
     public static string ScrubStackTrace(string stackTrace, bool removeParams = false)
     {
-        var builder = new StringBuilder(stackTrace.Length);
-        var angleBrackets = "<>".AsSpan();
-        var moveNext = ".MoveNext()".AsSpan();
-        var taskAwaiter = "System.Runtime.CompilerServices.TaskAwaiter".AsSpan();
-        var end = "End of stack trace from previous location where exception was thrown".AsSpan();
-
-        foreach (var line in stackTrace.AsSpan().EnumerateLines())
+        var builder = new StringBuilder();
+        using var reader = new StringReader(stackTrace);
+        while (reader.ReadLine() is { } line)
         {
-            var span = line.TrimStart();
-            if ((span.Contains(angleBrackets, StringComparison.Ordinal) &&
-                 span.Contains(moveNext, StringComparison.Ordinal)) ||
-                span.Contains(taskAwaiter, StringComparison.Ordinal) ||
-                span.Contains(end, StringComparison.Ordinal))
+            if (
+                (line.Contains("<>") && line.Contains(".MoveNext()")) ||
+                line.Contains("System.Runtime.CompilerServices.TaskAwaiter") ||
+                line.Contains("End of stack trace from previous location where exception was thrown")
+            )
             {
                 continue;
             }
 
-            if (!span.StartsWith("at "))
+            line = line.TrimStart();
+            if (!line.StartsWith("at "))
             {
-                builder.AppendLineN(span);
+                builder.AppendLineN(line);
                 continue;
             }
 
-            if (span.StartsWith("at InnerVerifier.Throws") ||
-                span.StartsWith("at InnerVerifier.<Throws"))
+            if (line.StartsWith("at InnerVerifier.Throws") ||
+                line.StartsWith("at InnerVerifier.<Throws"))
             {
                 continue;
             }
 
-            var indexOfLeft = span.IndexOf('(');
-
-            var indexOfRight = span.IndexOf(')');
             if (removeParams)
             {
-                var next = indexOfLeft + 1;
-                if (next == indexOfRight)
+                var indexOfLeft = line.IndexOf('(');
+                if (indexOfLeft > -1)
                 {
-                    var left = span[..(indexOfRight + 1)];
-                    WriteReplacePlus(builder, left);
-                }
-                else
-                {
-                    var left = span[..next];
-                    WriteReplacePlus(builder, left);
-                    builder.Append("...)");
+                    var c = line[indexOfLeft + 1];
+                    if (c == ')')
+                    {
+                        line = line[..(indexOfLeft + 2)];
+                    }
+                    else
+                    {
+                        line = line[..(indexOfLeft + 1)] + "...)";
+                    }
                 }
             }
             else
             {
-                var right = span[..(indexOfRight + 1)];
-                WriteReplacePlus(builder, right);
+                var indexOfRight = line.IndexOf(')');
+                if (indexOfRight > -1)
+                {
+                    line = line[..(indexOfRight + 1)];
+                }
             }
 
-            builder.AppendLineN();
+            line = line.Replace(" (", "(");
+            line = line.Replace('+', '.');
+            builder.AppendLineN(line);
         }
 
-        builder.Length--;
+        builder.TrimEnd();
         return builder.ToString();
-    }
-
-    static void WriteReplacePlus(StringBuilder builder, CharSpan span)
-    {
-        while (true)
-        {
-            var indexOf = span.IndexOf('+');
-            if (indexOf == -1)
-            {
-                builder.Append(span);
-                return;
-            }
-
-            builder.Append(span[..indexOf]);
-            builder.Append('.');
-            span = span[(indexOf + 1)..];
-        }
     }
 }
